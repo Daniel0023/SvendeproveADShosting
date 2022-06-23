@@ -9,13 +9,8 @@
       vid: "{{ controlplanefacts.vlan }}"
       site: "Aarhus Site"
       tenant: "ADS Hosting"
-    #  group: "East Jutland"
-     # region: "Denmark"
       status: "active"
       vlan_role: "customer-prefixes"
-   # query_params:
-   #   - region
-   #   - group
     state: present
   
 - name: Create prefix within NetBox 
