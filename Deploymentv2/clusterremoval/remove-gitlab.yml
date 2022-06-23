@@ -11,9 +11,3 @@
         name: "{{ gitlabprojectname }}"
         group: "{{ company }}"
         state: absent
-      
-    - name: Remove webhook template
-      awx.awx.tower_job_template:
-        name: "Webhook: {{ cluster }}"
-        organization: Default
-        state: "absent"

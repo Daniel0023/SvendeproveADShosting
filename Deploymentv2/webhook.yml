@@ -1,0 +1,85 @@
+--- 
+- hosts: localhost
+  gather_facts: false
+
+  tasks: 
+  
+    - name: Create webhook template
+      awx.awx.tower_job_template:
+        name: "Webhook: 333-test"
+        organization: Default
+        job_type: "run"
+        inventory: "localhost"
+        project: "Git DevOps"
+        playbook: "Deploymentv2/webhook.yml"
+        limit: "{{ controlplane.ip.split('/')[0] }}"
+        webhook_service: gitlab
+        credentials:
+          - "GitLab"
+          - "Tower Management"
+        state: "present"
+      register: template
+   
+    - debug: 
+        msg: "{{ template.id }}"
+      
+    - name: Generate NodeID 
+      raw: |
+          $Token = "1pY7FkMIabBXXzfeRsu4E6iQfisSOh" | ConvertTo-SecureString -AsPlainText -Force
+          $site = "https://awx.adshosting.lan/api/v2/job_templates/{{ template.id }}/webhook_key/"
+    
+          $body = @{
+              Authentication = "Bearer"
+              Token = $Token
+              Method = "GET"
+              URI = $site
+              ContentType = "application/json"
+    
+          }
+          $key = Invoke-RestMethod @body  -AllowUnencryptedAuthentication -SkipCertificateCheck  
+          return $key.webhook_key
+      args:
+        executable: /usr/bin/pwsh
+      changed_when: false
+      register: hookinfo
+    
+    - debug:
+        msg: "{{ hookinfo.stdout }}" 
+  
+    - name: "Adding a project hook"
+      gitlab_hook:
+        api_url: "{{ api_url }}"
+        api_token: "{{ api_token }}"
+        project: "komplett/Project-168676"
+        hook_url: "https://awx.adshosting.lan/api/v2/job_templates/{{ template.id }}/gitlab/"
+        state: present
+        push_events: yes
+        token: "{{ hookinfo.stdout.split('\n')[0] }}" 
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+ #  - name: Get webhook key
+ #    uri:
+ #       url: "https://awx.adshosting.lan/api/v2/job_templates/{{ template.id }}/webhook_key/"
+ #       method: GET
+ #       body_format: json
+ #       validate_certs: false
+ #       status: 500
+ #      # headers:
+ #     #    Content-Type: 'application/json'
+ #    #  user: '{{ simply_user }}'
+ #      # password: '{{ simply_token }}'
+ #       #status_code: 200

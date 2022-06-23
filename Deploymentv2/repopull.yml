@@ -1,0 +1,15 @@
+--- 
+- hosts: all
+  gather_facts: false
+  become: yes
+
+  tasks: 
+  
+    - name: Git pull
+      command: "sudo git pull"
+      args: 
+        chdir: "/var/www/html/{{ gitlabprojectname }}"
+
+
+
+

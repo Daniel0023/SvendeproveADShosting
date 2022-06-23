@@ -1,0 +1,19 @@
+---
+- name: Remove local prometheus target from central prometheus
+  lineinfile: 
+    path: "/etc/prometheus/prometheus-{{ company | lower }}.yml"
+    line: "- '10.10.104.11:9090'"
+    state: absent
+
+- name: dockercontainerrestart
+  shell: "sudo docker restart prometheus-{{ company | lower }}"
+
+- name: Delete cluster data from prometheus
+  shell: "curl -X POST -g http://prometheusfed.adshosting.lan:9090/api/v1/admin/tsdb/delete_series?match[]={cluster={{ clusterid }}"
+  delegate_to: localhost
+
+
+
+
+
+

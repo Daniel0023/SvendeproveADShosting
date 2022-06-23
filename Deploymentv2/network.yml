@@ -1,0 +1,37 @@
+--- 
+- hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Create Vlan
+      ios_vlan:
+        vlan_id: "{{ controlplanefacts.vlan }}"
+        name: "{{ company }}-{{ clusterfacts.id }}-{{ stage }}"
+    
+    - name: Configure vlan and vlan interface on stack
+      ios_command:
+        commands: 
+          - "conf t"
+          - "int vlan{{ controlplanefacts.vlan }}"
+          - "description {{ company }}-{{ clusterfacts.id }}-{{ stage }}"
+          - "ip address 10.10.{{ controlplanefacts.vlan }}.1 255.255.255.0"
+          - "ip ospf 1 area 0"
+          - "ipv6 address 2001:EC4:A:{{ controlplanefacts.vlan }}::1/64"
+          - "ipv6 enable"
+          - "ipv6 ospf 1 area 0"
+          - "ip access-group customers-in in"
+          - "ip access-group customers-out out"
+          - "no shutdown"
+          - "end"
+    
+    - name: Configure trunks
+      ios_command: 
+        commands: 
+          - "conf t"
+          - "int range po1-3"
+          - "switchport trunk allowed vlan add {{ controlplanefacts.vlan }}"
+
+    - name: Set network stats
+      set_stats: 
+        data: 
+          swvlan: "{{ company }}-{{ clusterfacts.id }}-{{ stage }}"

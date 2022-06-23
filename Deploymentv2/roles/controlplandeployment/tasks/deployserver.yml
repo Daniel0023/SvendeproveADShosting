@@ -35,6 +35,9 @@
         cluster: "{{ clusterfacts.id }}"
   with_items: 
     - "{{ controlplanefacts }}"
+
+- debug: 
+    msg: 
   
 - name: Add newly deployed host to inventory with static ip
   add_host:

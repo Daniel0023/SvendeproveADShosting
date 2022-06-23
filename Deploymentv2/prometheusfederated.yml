@@ -1,0 +1,20 @@
+- hosts: all
+  gather_facts: false
+  become: yes
+
+  tasks:
+
+    - name: Build target string for prometheus federation
+      set_fact: 
+        target: "- '{{ controlplanefacts.ip.split('/')[0]}}:9090'"
+        
+    - name: Added control plane address to prometheus federation
+      lineinfile: 
+        path: "/etc/prometheus/prometheus-{{ company | lower }}.yml"
+        line: "{{ target | indent(6, true) }}"
+        insertafter: "- targets:"
+
+    - name: dockercontainerrestart
+      shell: "sudo docker restart prometheus-{{ company | lower }}"
+
+

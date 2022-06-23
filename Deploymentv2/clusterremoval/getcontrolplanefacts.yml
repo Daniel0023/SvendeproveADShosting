@@ -1,0 +1,85 @@
+--- 
+- hosts: '{{ cluster }}'
+  gather_facts: false
+
+  tasks: 
+
+
+    - name: list
+      debug: 
+        msg: "{{ inventory_hostname }}"
+
+    - name: Get facts - general
+      set_fact: 
+        subnet: "{{ subnet }}"
+        vlan: "{{ vlan }}"
+        portgroup: "{{ portgroup }}"
+        clusterid: "{{ clusterid }}"
+        company: "{{ company }}"
+        stage: "{{ stage }}"
+        vlanid: "{{ vlanid }}"
+        publicip: "{{ publicip }}"
+        dnsrecordid: "{{ dnsrecordid }}"
+        gitlabprojectname: "{{ gitlabprojectname }}"
+
+
+
+    - name: Get facts - controlplane
+      set_fact: 
+        controlplaneip: "{{ item.ip }}"
+        controlplanehostname: "{{ item.hostname }}"
+      with_items: 
+        - "{{ controlplane }}"
+
+
+    - name: Get facts - nodes names
+      set_fact: 
+        nodehostnames: "{{ item }}"
+      with_items: 
+        - "{{ nodehostnames }}"
+  
+    - name: Get facts - nodes ips
+      set_fact: 
+        nodeip: "{{ item }}"
+      with_items: 
+        - "{{ nodeip }}"
+
+
+    - name: Set stats - general
+      set_stats:
+        data: 
+          subnet: "{{ subnet }}"
+          vlan: "{{ vlan }}"
+          portgroup: "{{ portgroup }}"
+          clusterid: "{{ clusterid }}"
+          company: "{{ company }}"
+          stage: "{{ stage }}"
+          vlanid: "{{ vlanid }}"
+          publicip: "{{ publicip }}"
+          dnsrecordid: "{{ dnsrecordid }}"
+          gitlabprojectname: "{{ gitlabprojectname }}"
+
+
+    - name: Get facts - controlplane
+      set_stats:
+        data: 
+          controlplaneip: "{{ item.ip }}"
+          controlplanehostname: "{{ item.hostname }}"
+      with_items: 
+        - "{{ controlplane }}"
+
+
+    - name: Get facts - nodes hostnames
+      set_stats:
+        data: 
+         nodehostnames: "{{ item }}"
+      with_items: 
+        - "{{ nodehostnames }}"
+
+
+    - name: Get facts - nodes hostnames
+      set_stats:
+        data: 
+          nodeip: "{{ item }}"
+      with_items: 
+        - "{{ nodeip }}"

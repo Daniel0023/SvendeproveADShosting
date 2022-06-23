@@ -3,7 +3,7 @@
     path: /etc/netplan/99-netcfg-vmware.yaml
     line: "{{ dns_nameservers | indent(8, true) }}"
     insertafter: "nameservers"
-
+    
 - name: Apply DNS settings
   shell: netplan apply
   
