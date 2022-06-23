@@ -9,6 +9,7 @@ Down below is a view of how the code is strutured.
 ```
 Deploymentv2/
 ├── clusterremoval
+│   ├── getcontrolplanefacts.yml
 │   ├── removal-netbox.yml
 │   ├── removal-prometheustarget.yml
 │   ├── remove-dns.yml
