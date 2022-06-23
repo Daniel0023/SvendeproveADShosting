@@ -1,19 +1,4 @@
 ---
-#- name: Create webhook template
-#  awx.awx.tower_job_template:
-#    name: "Webhook: {{ clusterfacts.id }}"
-#    organization: Default
-#    job_type: "run"
-#    inventory: "Localhost"
-#    project: "Git DevOps"
-#    playbook: "codesync.yml"
-#    webhook_service: gitlab
-#    webhook_credential: "Datait2022!"
-#    credentials:
-#      - "GitLab"
-#      - "Tower Management"
-#    state: "present"
-
 - name: Create Gitlab repo path
   file: 
     path: "{{ gitlab.path }}"
