@@ -21,19 +21,6 @@
     wait_for_ip_address: true
   with_items: "{{ nodefacts }}"
   register: deployed_vm
- # async: 600
- # poll: 0
-
-
-#- name: Check on an async task
-#  async_status:
-#    jid: "{{ item.ansible_job_id }}"
-#  register: job_result
-#  until: job_result.finished
-#  retries: 100
-#  delay: 30
-#  with_items: "{{ deployed_vm.results }}"
-
 
 - set_fact:
     vmdetails: 
