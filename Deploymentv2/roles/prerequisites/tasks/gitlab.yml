@@ -8,18 +8,6 @@
     wiki_enabled: yes
     state: present
   register: pro
-
-- debug: 
-    msg: "{{ pro.project.id }}"
-
-- debug: 
-    msg: "{{ pro.project.http_url_to_repo }}"
-
-- debug: 
-    msg: "{{ pro.project.path_with_namespace }}"
-
-- debug:
-   msg: "{{ gitlabserver }}/{{ pro.project.path_with_namespace }}.git"
    
 - name: Create access token
   uri:
