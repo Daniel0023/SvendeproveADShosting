@@ -4,7 +4,6 @@
     src: node_exporter
     dest: /usr/local/bin
     mode: 766
-    #remote_src: yes
 
 - name: create prometheus system group
   group:
