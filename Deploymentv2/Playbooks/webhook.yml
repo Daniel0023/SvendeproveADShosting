@@ -1,13 +1,6 @@
 --- 
 - hosts: localhost
   gather_facts: false
-  vars: 
-    api_user: "ansible-sa"
-    api_pass: "Datait2022!"
-    api_token: "oX3beGsu91hjx2M1Csi6"
-    gitlabserver: "10.10.80.12"
-    clusterfacts: "111"
-    company: "proshop"
 
   tasks: 
   
@@ -26,9 +19,6 @@
           - "Tower Management"
         state: "present"
       register: template
-   
-    - debug: 
-        msg: "{{ template.id }}"
       
     - name: Generate NodeID 
       raw: |
@@ -49,11 +39,8 @@
         executable: /usr/bin/pwsh
       changed_when: false
       register: hookinfo
-    
-    - debug:
-        msg: "{{ hookinfo.stdout }}" 
   
-    - name: "Adding a project hook"
+    - name: Adding a project hook
       gitlab_hook:
         api_url: "{{ api_url }}"
         api_token: "{{ api_token }}"
@@ -62,31 +49,3 @@
         state: present
         push_events: yes
         token: "{{ hookinfo.stdout.split('\n')[0] }}" 
-
-    
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
- #  - name: Get webhook key
- #    uri:
- #       url: "https://awx.adshosting.lan/api/v2/job_templates/{{ template.id }}/webhook_key/"
- #       method: GET
- #       body_format: json
- #       validate_certs: false
- #       status: 500
- #      # headers:
- #     #    Content-Type: 'application/json'
- #    #  user: '{{ simply_user }}'
- #      # password: '{{ simply_token }}'
- #       #status_code: 200
