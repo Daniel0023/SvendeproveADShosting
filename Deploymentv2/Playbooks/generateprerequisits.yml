@@ -3,7 +3,7 @@
     
   tasks: 
   
-    - include_vars: enabledtasks.yml
+    - include_vars: defaults/enabledtasks.yml
 
     - name: Include {{ prerequisites_tasks | length }} role(s) for control plane
       include_role:
