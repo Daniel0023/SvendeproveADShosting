@@ -1,0 +1,38 @@
+- hosts: localhost
+  gather_facts: false
+  #vars_files: "defaults/main.yml"
+  vars: 
+    cluser: "cluster01"
+    company: "Komplett"
+    stage: "Test"
+    replicas: 6
+    amountofclusters: 1
+    vm_datacenter: "ADShosting Datacenter"
+    
+  
+
+  tasks: 
+
+    - name: Include role for generating Control plane
+      include_role: 
+        name: "nodedeployment"
+
+
+
+
+- name: Configure Control Plane
+  hosts: new
+  gather_facts: true
+  become: yes
+
+  tasks:
+
+    - include_vars: enabledtasks.yml
+
+    - name: Include {{ node_tasks | length }} role(s) for node
+      include_role:
+        name: "nodedeployment"
+        tasks_from: "{{ includedtasks }}.yml"
+      with_items: "{{ node_tasks }}"
+      loop_control: 
+        loop_var: includedtasks        

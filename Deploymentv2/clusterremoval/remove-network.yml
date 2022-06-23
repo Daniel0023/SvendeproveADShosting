@@ -1,0 +1,20 @@
+---
+- hosts: all
+  gather_facts: False
+
+  tasks: 
+
+
+    - name: Remove vlan from portchannels
+      ios_command: 
+        commands: 
+          - "conf t"
+          - "int range po1-3"
+          - "switchport trunk allowed vlan remove {{ vlanid }}"
+
+    - name: Remove vlan and vlan interface
+      ios_command: 
+        commands: 
+          - "conf t"
+          - "no vlan {{ vlanid }}"
+          - "no int vlan {{ vlanid }}"

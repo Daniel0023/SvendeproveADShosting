@@ -1,0 +1,17 @@
+---
+
+- name: Generate cluster ID
+  raw: get-random -maximum 999999 -minimum 100000
+  args:
+    executable: /usr/bin/pwsh
+  changed_when: false
+  register: clusterid
+
+- set_fact: 
+    clusterfacts: 
+      id: "{{ clusterid.stdout | from_json }}"
+
+- set_stats: 
+    data: 
+      clusterfacts: 
+        id: "{{ clusterid.stdout | from_json }}"

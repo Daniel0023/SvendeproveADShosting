@@ -1,0 +1,17 @@
+---
+- hosts: localhost
+  gather_facts: False
+
+  tasks: 
+
+    - name: Remove public DNS record
+      uri:
+        url: "{{ simply_url }}/2/my/products/adshosting.dk/dns/records/{{ dnsrecordid }}"
+        method: DELETE
+        force_basic_auth: yes
+        body_format: json
+        headers:
+          Content-Type: 'application/json'
+        user: '{{ simply_user }}'
+        password: '{{ simply_token }}'
+        status_code: 200

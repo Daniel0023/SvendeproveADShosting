@@ -1,0 +1,6 @@
+---
+# tasks file for serverdeployment
+- name: Deploy Server
+  import_tasks: deployserver.yml
+
+

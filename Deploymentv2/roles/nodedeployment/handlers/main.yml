@@ -1,0 +1,6 @@
+---
+# handlers file for serverdeployment
+- name: SSHRestart
+  ansible.builtin.service:
+    name: ssh
+    state: restarted

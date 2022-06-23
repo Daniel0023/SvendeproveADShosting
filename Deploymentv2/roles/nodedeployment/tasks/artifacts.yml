@@ -1,0 +1,11 @@
+---
+- name: Disable root user
+  user:
+    name: "root"
+    password: "*"
+  
+- name: Store hostname details as ansible_local fact
+  copy:
+    dest: "/etc/ansible/facts.d/facts.fact"
+    content: "{{ details }}"
+

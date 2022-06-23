@@ -1,0 +1,11 @@
+---
+- name: Build target string for prometheus federation
+  set_fact: 
+    target: "- '{{ controlplanefacts.ip.split('/')[0]}}:9090'"
+    
+- name: Added control plane address to prometheus federation
+  lineinfile: 
+    path: "/etc/prometheus/prometheus-{{ company }}.yml"
+    line: "{{ target | indent(6, true)"
+    insertafter: "- targets:"
+  notify: dockercontainerrestart

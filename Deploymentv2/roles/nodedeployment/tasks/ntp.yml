@@ -1,0 +1,20 @@
+---
+- name: Add NTP server
+  lineinfile: 
+    path: "/etc/systemd/timesyncd.conf"
+    line: "NTP={{ ntppool }}"
+    regexp: "^#NTP="
+    
+- name: Restart timesyncd
+  systemd: 
+    name: systemd-timesyncd
+    state: restarted
+    enabled: yes
+
+- name: Set timezone
+  timezone:
+    name: "Europe/Copenhagen"
+
+
+
+

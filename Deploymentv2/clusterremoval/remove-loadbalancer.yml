@@ -1,0 +1,11 @@
+---
+- hosts: all
+  gather_facts: False
+  become: yes
+
+  tasks:
+    
+    - name: Remove load balancer config
+      file:
+        path: "/etc/nginx/conf.d/{{ company }}/{{ clusterid }}.conf"
+        state: absent

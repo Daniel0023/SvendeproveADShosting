@@ -1,0 +1,41 @@
+---
+# tasks file for nginx
+- name: Install Nginx
+  apt: 
+    name: nginx
+    update_cache: true
+    state: latest
+
+- name: Create nginx group
+  group: 
+    name: nginx
+    system: true
+
+- name: Create nginx user
+  user: 
+    name: nginx
+    system: true
+    group: nginx
+    shell: "/usr/sbin/nologin"
+
+- name: Start/enable systemd service
+  systemd: 
+    name: nginx.service
+    state: restarted
+    enabled: true
+    daemon_reload: yes
+
+- name: Allow ssh for controlplane
+  lineinfile: 
+    path: "/root/.ssh/authorized_keys"
+    line: 'from="{{ controlplanefacts.ip.split("/")[0] }}" {{ nginxsyncpubkey }}'
+    create: yes
+
+- name: Allow in SSH config file
+  lineinfile: 
+    path: "/etc/ssh/sshd_config"
+    regexp: "PermitRootLogin no"
+    line: "PermitRootLogin without-password"
+  notify: SSHRestart
+
+

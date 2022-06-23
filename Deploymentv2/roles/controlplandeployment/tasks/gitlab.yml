@@ -1,0 +1,34 @@
+---
+#- name: Create webhook template
+#  awx.awx.tower_job_template:
+#    name: "Webhook: {{ clusterfacts.id }}"
+#    organization: Default
+#    job_type: "run"
+#    inventory: "Localhost"
+#    project: "Git DevOps"
+#    playbook: "codesync.yml"
+#    webhook_service: gitlab
+#    webhook_credential: "Datait2022!"
+#    credentials:
+#      - "GitLab"
+#      - "Tower Management"
+#    state: "present"
+
+- name: Create Gitlab repo path
+  file: 
+    path: "{{ gitlab.path }}"
+    state: directory
+
+- name: Create Gitlab data path
+  file: 
+    path: "/var/www/html/"
+    state: directory
+
+
+- name: Clone project repo to local
+  command: "sudo git clone http://administrator:{{ gitlab.projecttoken }}@{{ gitlab.gitlabrepo }}/{{ gitlab.projectname }}.git"
+  args:
+    chdir: "{{ gitlab.path }}"
+
+- name: Make symlink from git repo to nginx code source dir
+  command: "ln -s {{ gitlab.path }}/{{ gitlab.localrepopath }} /var/www/html/{{ gitlab.localrepopath }}"

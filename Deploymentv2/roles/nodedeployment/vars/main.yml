@@ -1,0 +1,10 @@
+---
+# vars file for serverdeployment
+ntppool: "ntp01.adshosting.lan"
+vm_folder: /
+domain: "adshosting.lan"
+vm_datacenter: "ADShosting Datacenter"
+dns_nameservers: |
+  addresses:
+    - 1.1.1.1
+    - 1.1.1.1

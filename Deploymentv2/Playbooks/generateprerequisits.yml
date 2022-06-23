@@ -1,0 +1,14 @@
+- hosts: localhost
+  gather_facts: false
+    
+  tasks: 
+  
+    - include_vars: enabledtasks.yml
+
+    - name: Include {{ prerequisites_tasks | length }} role(s) for control plane
+      include_role:
+        name: "prerequisites"
+        tasks_from: "{{ includedtasks }}.yml"
+      with_items: "{{ prerequisites_tasks }}"
+      loop_control: 
+        loop_var: includedtasks     

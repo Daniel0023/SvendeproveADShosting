@@ -1,0 +1,57 @@
+- name: Provision Ubuntu based virtual machine
+  vmware_guest:
+    validate_certs: false
+    name: "{{ item.hostname }}"
+    template: "{{ template }}-{{ tier }}"
+    datacenter: "{{ vm_datacenter }}"
+    folder: "Customers/{{ company }}/{{ stage }}/{{ clusterfacts.id }}"
+    state: poweredon
+    annotation: "{{ item.hostname | lower }}.{{ domain }} deployed by Ansible"
+    customization:
+      hostname: "{{ item.hostname }}"
+      domain: "{{ domain }}"
+    networks:
+      - name: "{{ vlan }}"       
+        type: "static"
+        ip: "{{ item.ip | ipaddr('address') }}"
+        netmask: "{{ item.ip | ipaddr('netmask')}}"
+        gateway: "{{ item.ip | ipaddr('1') | ipaddr('address') }}"
+        dns_servers: "{{ dns_nameservers }}"
+        start_connected: true
+    wait_for_ip_address: true
+  with_items: "{{ nodefacts }}"
+  register: deployed_vm
+ # async: 600
+ # poll: 0
+
+
+#- name: Check on an async task
+#  async_status:
+#    jid: "{{ item.ansible_job_id }}"
+#  register: job_result
+#  until: job_result.finished
+#  retries: 100
+#  delay: 30
+#  with_items: "{{ deployed_vm.results }}"
+
+
+- set_fact:
+    vmdetails: 
+      - ip:  "{{ item.ip.split('/')[0] }}"
+        id: "{{ item.nodeid }}"
+        cluster: "{{ clusterfacts.id }}"
+        stage: "{{ stage }}"
+        company: "{{ company }}"
+  with_items: 
+    - "{{ nodefacts }}"
+
+- name: Add newly deployed host to inventory with static ip
+  add_host:
+    groups: new
+    host_key_checking: False
+    name: "{{ item.ip.split('/')[0] }}"
+    ansible_host: "{{ item.ip.split('/')[0] }}"
+    ansible_python_interpreter: /usr/bin/python3
+    details: "{{ item | to_json }}"
+  register: newhost
+  with_items: "{{ nodefacts }}"

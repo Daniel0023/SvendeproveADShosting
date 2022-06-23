@@ -1,0 +1,5 @@
+---
+# defaults file for prerequisites
+vm_folder: /
+vm_datacenter: "ADShosting Datacenter"
+gitlabserver: "10.10.80.12"

@@ -1,0 +1,26 @@
+--- 
+- name: Add controlplane
+  tower_host:
+    name: "{{ clusterfacts.id }}"
+    inventory: "ControlPlanes"
+    state: present
+    variables:
+      ansible_host: "{{ controlplanefacts.ip.split('/')[0] }}"
+      controlplane:
+        - ip: "{{ controlplanefacts.ip }}"
+          hostname:  "{{ controlplanefacts.hostname }}"
+      subnet: "{{ controlplanefacts.subnet }}"
+      nodeip: "{% for node in nodefacts %}{{ node.ip }}\n{% endfor %}"
+      nodehostnames: "{% for node in nodefacts %}{{ node.hostname }}\n{% endfor %}"
+      snatip: "{{ snatfacts.ip }}"
+      publicip: "{{ publicip }}"
+      vlan: "{{ vlan  }}"
+      portgroup: "{{ vlan }}"
+      clusterid: "{{ clusterfacts.id }}"
+      company: "{{ company }}"
+      stage: "{{ stage }}"
+      vlanid: "{{ controlplanefacts.vlan }}"
+      gitlabproject: "{{ gitlab.gitlabproject }}"
+      gitlabprojectname: "{{ gitlab.projectname.split('/')[1] }}"
+      dnsrecordid: "{{ dnsrecordid }}"
+  delegate_to: localhost

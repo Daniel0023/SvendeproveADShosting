@@ -1,0 +1,28 @@
+upstream {{ clusterfacts.id }} {
+hash $remote_addr; 
+{% for node in nodefacts %}
+server {{ node.ip.split('/')[0] }};
+{% endfor %}
+}
+
+# This server accepts all traffic to port 80 and passes it to the upstream.
+
+server {
+   listen {{ snatfacts.ip.split('/')[0] }}:80;
+   server_name {{ stage }}-{{ clusterfacts.id }}.{{ company }}.adshosting.dk;
+   return 301 https://{{ stage }}-{{ clusterfacts.id }}.{{ company }}.adshosting.dk;
+}
+server {
+   listen {{ snatfacts.ip.split('/')[0] }}:443 ssl;
+   ssl_certificate /etc/letsencrypt/live/{{ company }}.adshosting.dk/fullchain.pem;
+   ssl_certificate_key /etc/letsencrypt/live/{{ company }}.adshosting.dk/privkey.pem;
+   server_name {{ stage }}-{{ clusterfacts.id }}.{{ company }}.adshosting.dk;
+
+   location / {
+      proxy_pass http://{{ clusterfacts.id }};
+      proxy_set_header HOST $host;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      #proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+   }
+}

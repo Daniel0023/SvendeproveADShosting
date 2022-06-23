@@ -1,0 +1,67 @@
+---
+# tasks file for moitoring
+- name: Install docker compose
+  block: 
+    - name: Install docker prerequisites
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop: 
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - software-properties-common
+    
+    - name: Add Dockers GPG key for ubuntu from official site
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+    
+    - name: Verify gpg key with the fingerprint
+      apt_key:
+        id: 0EBFCD88
+        state: present
+    
+    - name: Configure Docker for ubuntu stable repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+        state: present
+        update_cache: yes
+    
+    - name: Install docker-ce
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop: 
+        - docker-ce
+        - docker-ce-cli 
+        - containerd.io
+    
+    - name: Add local user to "docker" group
+      user:
+        name: "ubuntu"
+        group: "docker"
+        append: yes
+    
+    - name: Install docker-compose from official github repo
+      get_url:
+        url : https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: 755
+
+    - name: Set permissions on binary
+      shell: "sudo chmod +x /usr/local/bin/docker-compose"
+
+    - name: Create docker-compose symbolic link
+      ansible.builtin.file:
+        src: /usr/local/bin/docker-compose 
+        dest:  /usr/bin/docker-compose
+        owner: root
+        group: root
+        state: link
+
+
+      
+    

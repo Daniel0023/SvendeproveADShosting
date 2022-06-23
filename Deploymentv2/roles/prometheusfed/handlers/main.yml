@@ -1,0 +1,6 @@
+---
+# handlers file for prometheusfed
+- name: dockercontainerrestart
+  docker_container:
+    name: "prometheus-{{ company }}"
+    state: started

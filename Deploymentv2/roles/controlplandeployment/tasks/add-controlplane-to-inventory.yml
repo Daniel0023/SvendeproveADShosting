@@ -1,0 +1,23 @@
+--- 
+- name: Wait for system to become reachable
+  wait_for_connection:
+    timeout: 200
+    sleep: 80
+    
+- name: Create control plane inventory
+  tower_inventory:
+    name: "Inventory-{{ cluster }}"
+    organization: Default
+    state: present
+    tower_verify_ssl: no
+
+
+- name: Add newly deployed Control Plane to inventory
+  tower_host:
+    name: "{{ company }}_{{ type }}_{{ stage }}_{{ cluster }}"
+    inventory: "Inventory-{{ cluster }}"
+    state: present
+    tower_verify_ssl: no
+    variables:
+       ansible_host: "{{ ip.split('/')[0] }}"
+  delegate_to: localhost

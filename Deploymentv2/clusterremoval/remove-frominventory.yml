@@ -1,0 +1,13 @@
+--- 
+- hosts: localhost
+  gather_facts: false
+    
+
+  tasks: 
+
+    - name: Remove controlplane
+      tower_host:
+        name: "{{ clusterid }}"
+        inventory: "ControlPlanes"
+        state: absent
+      delegate_to: localhost

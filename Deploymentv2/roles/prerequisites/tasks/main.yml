@@ -1,0 +1,36 @@
+---
+#- name: Generate control plane facts
+#  import_tasks: generatenodefacts.yml
+#
+#- name: Generate node facts
+#  import_tasks: generatecontrolplanefacts.yml
+#
+#- name: Generate cluster facts
+#  import_tasks: generateclusterid.yml
+#  
+#- name: Generate cluster facts
+#  import_tasks: createvmfolder.yml
+#
+#- name: controlplane
+#  debug: 
+#    msg: "{{ controlplanefacts.nodeid }}"
+#
+#- name: Generate hostname
+#  import_tasks: generatehostnames.yml
+#
+#- name: Generate SNAT IP
+#  import_tasks: generatesnatip.yml
+#
+#- name: Generate hostname
+#  import_tasks: netbox.yml
+#
+##- name: Generate gitlab repoo and project token
+##  import_tasks: gitlab.yml
+#
+#- name: node
+#  debug: 
+#    msg: "{{ nodefacts }}"
+#
+#- name: clusterid
+#  debug: 
+#    msg: "{{ clusterfacts }}"

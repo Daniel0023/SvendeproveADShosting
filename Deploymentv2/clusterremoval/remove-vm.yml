@@ -1,0 +1,68 @@
+---
+- hosts: localhost
+  gather_facts: False
+
+  tasks: 
+
+    - name: Remove Nodes
+      vmware_guest:
+        validate_certs: false
+        name: "{{ item }}"
+        folder: "Customers/{{ company }}/{{ stage }}/{{ clusterid }}"
+        state: absent
+        force: yes
+      with_items: 
+        - "{{ nodehostnames.split('\n') }}"
+  
+    - name: Remove Controlplane
+      vmware_guest:
+        validate_certs: false
+        name: "{{ controlplanehostname }}"
+        folder: "Customers/{{ company }}/{{ stage }}/{{ clusterid }}"
+        force: yes
+        state: absent
+
+
+
+    - name: Remove cluster folder
+      community.vmware.vcenter_folder:
+        validate_certs: false
+        datacenter_name: "ADShosting Datacenter"
+        folder_name: "{{ clusterid }}"
+        folder_type: vm
+        parent_folder: "Customers/{{ company }}/{{ stage }}"
+        state: absent
+
+
+    - name: Remove distributed port group
+      raw: |
+          [string]$userName = '{{ vmware_user }}'
+          [string]$userPassword = '{{ vmware_password }}'
+          [string]$vcenter = '{{ vcenter_url }}'
+          [string]$portgroup = '{{ vlan }}'
+  
+          try {
+              $secpasswd = ConvertTo-SecureString -String $userPassword -AsPlainText -Force
+              $Credentials = [PSCredential]::new($userName, $secpasswd)
+              $null = Set-PowerCLIConfiguration -Scope User -ParticipateInCEIP $false -Confirm:$false | Out-Null
+              $null = Set-PowerCLIConfiguration -DisplayDeprecationWarnings $false -InvalidCertificateAction Ignore -Confirm:$false | Out-Null
+              $connect = Connect-VIServer -Server $vcenter -Credential $Credentials -Force | Out-Null
+          }
+          catch{
+  
+            $_
+          }
+  
+          try{
+  
+            Get-VDPortGroup -Name $portgroup | Remove-VDPortGroup -ErrorAction stop -confirm:$false
+          }
+          catch{
+  
+            $_
+  
+          }
+      args:
+        executable: /bin/pwsh
+      changed_when: false
+      register: result

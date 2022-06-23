@@ -1,0 +1,113 @@
+---   
+- name: Create GitLab project
+  community.general.gitlab_project:
+    api_url: "{{ api_url }}"
+    api_token: "{{ api_token }}"
+    name: "Project-{{ clusterfacts.id }}"
+    group: "{{ company }}"
+    wiki_enabled: yes
+    state: present
+  register: pro
+
+- debug: 
+    msg: "{{ pro.project.id }}"
+
+- debug: 
+    msg: "{{ pro.project.http_url_to_repo }}"
+
+- debug: 
+    msg: "{{ pro.project.path_with_namespace }}"
+
+- debug:
+   msg: "{{ gitlabserver }}/{{ pro.project.path_with_namespace }}.git"
+   
+- name: Create access token
+  uri:
+    url: "{{ api_url }}/api/v4/projects/{{ pro.project.id }}/access_tokens"
+    method: POST
+    force_basic_auth: yes
+    body_format: json
+    headers:
+      PRIVATE-TOKEN: '{{ api_token }}'
+      Content-Type: 'application/json'
+    status_code: 201
+    body: '{"name": "AccessToken", "scopes": ["api"], "access_level": 40}'
+  register: projecttoken
+  
+- name: Set gitlab facts
+  set_fact: 
+    gitlab:
+      path: "/var/gitlab"
+      repourl: "{{ gitlabserver }}/{{ pro.project.path_with_namespace }}.git"
+      projecttoken: "{{ projecttoken.json.token }}"
+      projectname: "{{ pro.project.path_with_namespace }}"
+      gitlabrepo: "10.10.80.12"
+      gitlabproject: "{{ pro.project.id }}"
+      localrepopath: "{{ pro.project.path_with_namespace.split('/')[1] }}" 
+  
+- name: Provide gitlab facts for workflow
+  set_stats: 
+    data: 
+      gitlab:
+        path: "/var/gitlab"
+        repourl: "{{ gitlabserver }}/{{ pro.project.path_with_namespace }}.git"
+        projecttoken: "{{ projecttoken.json.token }}"
+        localrepopath: "{{ pro.project.path_with_namespace.split('/')[1] }}" 
+        projectname: "{{ pro.project.path_with_namespace }}"
+        gitlabrepo: "10.10.80.12"
+        gitlabproject: "{{ pro.project.id }}"
+
+- name: Create webhook template
+  awx.awx.tower_job_template:
+    name: "Webhook: {{ clusterfacts.id }}"
+    organization: Default
+    job_type: "run"
+    inventory: "localhost"
+    project: "Git DevOps"
+    playbook: "Deploymentv2/repopull.yml"
+    limit: "{{ clusterfacts.id  }}"
+    webhook_service: gitlab
+    credentials:
+      - "Linux Management"
+    state: "present"
+  register: template
+  
+- name: Get webhook API key
+  raw: |
+      $Token = "1pY7FkMIabBXXzfeRsu4E6iQfisSOh" | ConvertTo-SecureString -AsPlainText -Force
+      $site = "https://awx.adshosting.lan/api/v2/job_templates/{{ template.id }}/webhook_key/"
+
+      $body = @{
+          Authentication = "Bearer"
+          Token = $Token
+          Method = "GET"
+          URI = $site
+          ContentType = "application/json"
+
+      }
+      $key = Invoke-RestMethod @body  -AllowUnencryptedAuthentication -SkipCertificateCheck  
+      return $key.webhook_key
+  args:
+    executable: /usr/bin/pwsh
+  changed_when: false
+  register: hookinfo
+
+- name: Adding a project hook
+  gitlab_hook:
+    api_url: "{{ api_url }}"
+    api_token: "{{ api_token }}"
+    project: "{{ gitlab.projectname }}"
+    hook_url: "https://awx.adshosting.lan/api/v2/job_templates/{{ template.id }}/gitlab/"
+    state: present
+    push_events: yes
+    token: "{{ hookinfo.stdout.split('\n')[0] }}" 
+    
+
+
+
+
+
+
+
+
+

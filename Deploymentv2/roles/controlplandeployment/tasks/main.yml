@@ -1,0 +1,9 @@
+---
+# tasks file for serverdeployment
+- name: Set deployment facts
+  import_tasks: facts.yml
+
+- name: Deploy Server
+  import_tasks: deployserver.yml
+
+

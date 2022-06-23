@@ -1,0 +1,36 @@
+---
+- hosts: all
+  gather_facts: false
+  become: yes
+
+  tasks: 
+
+    - name: Remove local prometheus target from central prometheus
+      lineinfile: 
+        dest: "/etc/prometheus/prometheus-{{ company | lower }}.yml"
+        regexp: ".*{{ controlplaneip.split('/')[0] }}:9090.*"
+        state: absent
+    
+    - name: dockercontainerrestart
+      command: "sudo docker restart prometheus-{{ company | lower }}"
+    
+    - name: Delete cluster data from prometheus
+      command: "sudo curl -X POST -g http://prometheusfed.adshosting.lan:3200/api/v1/admin/tsdb/delete_series?match[]={cluster={{ clusterid }}}"
+      #delegate_to: localhost
+      when: company == "proshop"
+
+    - name: Delete cluster data from prometheus
+      command: "sudo curl -X POST -g http://prometheusfed.adshosting.lan:3000/api/v1/admin/tsdb/delete_series?match[]={cluster={{ clusterid }}}"
+      #delegate_to: localhost
+      when: company == "komplett"
+
+    - name: Delete cluster data from prometheus
+      command: "sudo curl -X POST -g http://prometheusfed.adshosting.lan:3100/api/v1/admin/tsdb/delete_series?match[]={cluster={{ clusterid }}}"
+      #delegate_to: localhost
+      when: company == "duolingo"
+    
+
+
+
+
+

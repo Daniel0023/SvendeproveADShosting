@@ -1,0 +1,40 @@
+--- 
+- name: Generate DNS record 
+  set_fact: 
+    dnsrecordname: "{{ stage }}-{{ clusterfacts.id }}.{{ company }}.adshosting.dk"
+  
+- name: Generate webserver URL
+  set_fact: 
+    dnsrecord: "https://{{ dnsrecordname }}"
+
+
+- set_stats: 
+    data: 
+      dnsrecordname: "{{ stage }}-{{ clusterfacts.id }}.{{ company }}.adshosting.dk"
+      dnsrecord: "https://{{ dnsrecordname }}"
+
+- name: Create public DNS record
+  uri:
+    url: "{{ simply_url }}/2/my/products/adshosting.dk/dns/records"
+    method: POST
+    force_basic_auth: yes
+    body_format: json
+    headers:
+      Content-Type: 'application/json'
+    user: '{{ simply_user }}'
+    password: '{{ simply_token }}'
+    status_code: 200
+    body: '{"type": "A", "name": "{{ dnsrecordname }}", "data": "{{ publicip.split("/")[0 ]}}", "priority": 10, "ttl": 600}'
+  register: dnsrecord
+
+- name: set dns facts
+  set_fact:
+    dnsrecordid: "{{ dnsrecord.json.record.id }}"
+
+- name: set dns facts
+  set_stats: 
+    data: 
+      dnsrecordid: "{{ dnsrecordid }}"
+
+
+      

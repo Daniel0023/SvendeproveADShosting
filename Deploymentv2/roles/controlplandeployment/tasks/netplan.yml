@@ -1,0 +1,23 @@
+- name: Set DNS Servers
+  lineinfile: 
+    path: /etc/netplan/99-netcfg-vmware.yaml
+    line: "{{ dns_nameservers | indent(8, true) }}"
+    insertafter: "nameservers"
+
+#- name: Set search domains
+#  lineinfile: 
+#    path: /etc/netplan/99-netcfg-vmware.yaml
+#    line: "{{ dns_search | indent(8, true) }}"
+#    insertafter: "172.16.17.12"
+#
+- name: Apply DNS settings
+  shell: netplan apply
+  
+- name: Enable systemd-resolved service
+  systemd:
+    name: "systemd-resolved"
+    enabled: yes
+    state: started
+
+
+

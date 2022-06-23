@@ -1,0 +1,12 @@
+[Unit]
+Description=nginx-sync
+After=syslog.target network.target
+
+[Service]
+Type=simple
+RemainAfterExit=true
+ExecStart=/usr/bin/nginx-sync-script.sh
+
+[Install]
+WantedBy=multi-user.target
+

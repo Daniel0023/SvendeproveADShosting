@@ -1,0 +1,18 @@
+--- 
+- hosts: localhost
+  gather_facts: false
+  vars: 
+   api_token: "oX3beGsu91hjx2M1Csi6"
+
+  tasks: 
+  
+
+     - name: Create GitLab project
+       community.general.gitlab_project:
+         api_url: "https://gitlab.adshosting.dk"
+         api_token: "{{ api_token }}"
+         name: "Project-682939"
+         group: "komplett"
+         state: absent
+       register: pro
+   

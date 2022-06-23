@@ -1,0 +1,54 @@
+---
+- hosts: localhost
+  gather_facts: false
+
+  tasks: 
+
+    - name: Remove prefix within NetBox 
+      netbox_prefix:
+        validate_certs: false
+        netbox_token: '{{ netbox_token }}'
+        netbox_url: '{{ netbox_url }}'
+        data:
+          prefix: "{{ subnet }}"
+        state: absent
+
+    - name: Remove new vlan to netbox
+      netbox.netbox.netbox_vlan:
+        validate_certs: false
+        netbox_token: '{{ netbox_token }}'
+        netbox_url: '{{ netbox_url }}'
+        data:
+          name: "{{ vlan }}"
+        state: absent
+              
+    - name: Remove controlplane from netbox
+      netbox_ip_address:
+        validate_certs: false
+        netbox_token: '{{ netbox_token }}'
+        netbox_url: '{{ netbox_url }}'
+        data:
+          address: "{{ controlplaneip }}"
+        state: absent
+    
+    - name: Remove nodes from netbox
+      netbox_ip_address:
+        validate_certs: false
+        netbox_token: '{{ netbox_token }}'
+        netbox_url: '{{ netbox_url }}'
+        data:
+          address: "{{ item | length }}"
+        state: absent
+      loop: "{{ nodeip.split('\n') }}"
+      when: item|length > 0
+      
+
+    - name: Remove public ip from netbox
+      netbox_ip_address:
+        validate_certs: false
+        netbox_token: '{{ netbox_token }}'
+        netbox_url: '{{ netbox_url }}'
+        data:
+          address: "{{ publicip }}"
+        state: absent
+    

@@ -1,0 +1,105 @@
+---
+# tasks file for nginx
+- name: Install Nginx
+  apt: 
+    name: nginx
+    update_cache: true
+    state: latest
+
+- name: Create nginx sync group
+  group: 
+    name: nginxsync
+    system: true
+
+- name: Create nginx sync user
+  user: 
+    name: nginxsync
+    system: true
+    group: nginxsync
+    shell: "/usr/sbin/nologin"
+
+- name: Generate an OpenSSH keypair for Nginx-sync
+  openssh_keypair:
+    path: /root/.ssh/id_ecdsa
+    type: ecdsa
+  register: pubkey
+
+- name: Do SSH public key availiabe for nodes to copy
+  set_stats: 
+    data: 
+      nginxsyncpubkey: "{{ pubkey.public_key }}"
+
+- name: Configure NGINX sync
+  copy: 
+    src: nginx-sync.sh
+    dest: /usr/local/bin/nginx-sync
+
+- name: Set permissions on binary
+  shell: "sudo chmod +x /usr/local/bin/nginx-sync"
+
+- name: Create nginx-sync symbolic link
+  ansible.builtin.file:
+    src: /usr/local/bin/nginx-sync
+    dest:  /usr/bin/nginx-sync
+    owner: root
+    group: root
+    state: link
+
+- name: Copy nginx-sync Config
+  template: 
+    src: nginx-sync.conf.j2
+    dest: "/etc/nginx-sync.conf"
+
+- name: Copy nginx-sync systemd service
+  copy: 
+    src: nginx-sync.service
+    dest: /etc/systemd/system/nginx-sync.service
+    owner: root
+    group: root
+
+- name: Copy nginx-sync copy script
+  copy: 
+    src: nginx-sync-script.sh
+    dest: /usr/bin/nginx-sync-script.sh
+    mode: '0766'
+    owner: nginxsync
+    group: nginxsync
+
+- name: Set permissions on script
+  shell: "sudo chmod +x /usr/bin/nginx-sync-script.sh"
+
+- name: Install nginx-sync script dependency
+  apt: 
+    name: inotify-tools
+    state: latest
+
+- name: Start/enable systemd service
+  systemd: 
+    name: nginx-sync.service
+    state: restarted
+    enabled: true
+    daemon_reload: yes
+
+- name: Fix SSH
+  lineinfile: 
+    path: "/root/.ssh/config"
+    line: |
+      Host *
+        StrictHostKeyChecking no
+    create: yes
+    owner: root
+    group: root
+    mode: 0400
+
+- name: Append cluster nodes into NGINX sync
+  lineinfile: 
+    path: /etc/nginx-sync.conf
+    line: "{{ item.ip.split('/')[0] }}"
+    insertafter: "NODES="
+  with_items: "{{ nodefacts }}"
+
+- name: Remove default index file
+  file: 
+    path: "/var/www/html/index.nginx-debian.html"
+    state: absent
+  

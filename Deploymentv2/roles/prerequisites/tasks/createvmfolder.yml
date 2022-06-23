@@ -1,0 +1,32 @@
+---
+- name: Create a cluster folder in VMware
+  community.vmware.vcenter_folder:
+    validate_certs: false
+    datacenter_name: "{{ vm_datacenter }}"
+    folder_name: "{{ clusterfacts.id }}"
+    folder_type: vm
+    parent_folder: "Customers/{{ company }}/{{ stage }}"
+    state: present
+  register: datastore_folder_creation_result
+  delegate_to: localhost
+
+- name: Create Distributed portGroup
+  community.vmware.vmware_dvs_portgroup:
+    portgroup_name: "{{ company }}-{{ clusterfacts.id }}-{{ stage }}"
+    switch_name: "DSwitch_ADS"
+    vlan_id: "{{ controlplanefacts.vlan }}"
+    num_ports: 2
+    port_binding: static
+    teaming_policy:
+      active_uplinks: "lag01-esxi3-prod"
+    state: present
+  register: pg
+  delegate_to: localhost
+
+
+- set_fact: 
+    vlan: "{{ company }}-{{ clusterfacts.id }}-{{ stage }}"
+    
+- set_stats: 
+    data: 
+      vlan: "{{ company }}-{{ clusterfacts.id }}-{{ stage }}"

@@ -1,0 +1,52 @@
+---
+- name: Append new vlan to netbox
+  netbox.netbox.netbox_vlan:
+    validate_certs: false
+    netbox_token: '{{ netbox_token }}'
+    netbox_url: '{{ netbox_url }}'
+    data:
+      name: "{{ company }}-{{ clusterfacts.id }}-{{ stage }}"
+      vid: "{{ controlplanefacts.vlan }}"
+      site: "Aarhus Site"
+      tenant: "ADS Hosting"
+    #  group: "East Jutland"
+     # region: "Denmark"
+      status: "active"
+      vlan_role: "customer-prefixes"
+   # query_params:
+   #   - region
+   #   - group
+    state: present
+  
+- name: Create prefix within NetBox 
+  netbox_prefix:
+    validate_certs: false
+    netbox_token: '{{ netbox_token }}'
+    netbox_url: '{{ netbox_url }}'
+    data:
+      prefix: "{{ item.subnet }}"
+      status: "active"
+      prefix_role: "customer-prefixes"
+      site: "Aarhus Site"
+      tenant: "ADS Hosting"
+      vlan:
+        name: "{{ company }}-{{ clusterfacts.id }}-{{ stage }}"
+        site: "Aarhus Site"
+        tenant: "ADS Hosting"
+        vid: "{{ controlplanefacts.vlan }}"
+        status: "active"
+    state: present
+  with_items: "{{ nodefacts }}"
+
+- name: Assosiate IP's to netbox prefix
+  netbox_ip_address:
+    validate_certs: false
+    netbox_token: '{{ netbox_token }}'
+    netbox_url: '{{ netbox_url }}'
+    data:
+      address: "{{ item.ip }}"
+    state: present
+  with_items: 
+   - "{{ nodefacts }}"
+   - "{{ controlplanefacts }}"
+   - "{{ snatfacts }}"

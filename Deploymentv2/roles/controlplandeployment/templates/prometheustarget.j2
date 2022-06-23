@@ -1,0 +1,16 @@
+[
+{% for item in nodefacts %}
+  {
+    "targets": [ "{{ item.ip.split('/')[0] }}:9100"],
+    "labels": {
+      "job": "Node_exporter",
+      "type": "node",
+      "displayname": "{{ item.hostname }}",
+      "clustername": "{{ dnsrecordname }}",
+      "cluster": "{{ clusterfacts.id }}",
+      "environment": "{{ stage }}"
+    }
+  }
+{% if not loop.last %},{% endif %}
+{% endfor %}
+]

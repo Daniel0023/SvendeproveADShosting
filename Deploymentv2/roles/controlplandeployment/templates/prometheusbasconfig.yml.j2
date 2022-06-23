@@ -1,0 +1,12 @@
+global:
+  scrape_interval: 30s
+  scrape_timeout: 10s
+
+rule_files:
+  - alert.yml
+
+scrape_configs:
+  - job_name: Node_exporter - Nodes
+    file_sd_configs:
+      - files:
+        - /etc/prometheus/targets.d/*.json

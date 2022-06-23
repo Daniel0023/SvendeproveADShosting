@@ -1,0 +1,132 @@
+---
+- name: Generate NodeID 
+  raw: |
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $false)]
+        [int]$numberofvms = '{{ replicas }}',
+        [int]$numberofclustres = '{{ amountofclusters }}',
+        [string]$company = '{{ company }}',
+        [string]$stage = '{{ stage }}'
+        
+    )
+    
+    try {
+        $index = 0
+        $nodeid = @()
+        Do {
+        
+            $id = get-random -maximum 999999 -minimum 100000
+            $nodeid+= $($id)
+            $index ++
+        
+        } Until ($index -eq $numberofvms +1)
+      }
+      catch {
+          $_
+      }
+    
+    try {
+    
+        $site = "http://ipam.adshosting.lan/api/ipam/prefixes/"
+        $header = @{"Authorization" = "Token 0123456789abcdef0123456789abcdef01234567"}
+    
+        $body = @{
+            Method = "GET"
+            Headers = $header
+            URI = $site
+            ContentType = "application/json"
+            AllowUnencryptedAuthentication = $true
+        
+        }
+    
+        $ipamsource = Invoke-RestMethod @body -ErrorAction stop 
+    
+    }
+    catch{
+    
+        Write-Error "Could not get list of prefixex - $($_.Exception.message)" 
+    
+    }
+    
+        if($null -eq ($ipamsource.results | Where-Object {$_.role.display -eq 'customer-prefixes'})){
+            [array]$prefixlist = 101
+        }
+        else{
+            [array] $prefixlist = $ipamsource.results | Where-Object {$_.role.display -eq 'customer-prefixes'}
+        }    
+
+        if($null -eq $prefixlist.vlan.vid ){
+            [array]$vlanlist = 101
+        }
+        else{
+            [array]$vlanlist = $prefixlist.vlan.vid 
+        }
+            
+        $prefixidlist = $prefixlist.id
+    
+        $usedsubnets = $prefixlist.prefix
+    
+    
+    
+    try{
+    $vlanarray = @()
+    [System.Collections.ArrayList]$vlanarray = $vlanlist
+    
+        $vlanarray.Remove("ERROR")
+        $MaxNum = $vlanarray | Measure-Object -Maximum | Select-Object -ExpandProperty Maximum
+        $MaxSum = $MaxNum + $numberofclustres
+        $CompareArray = @(101..$MaxSum)
+        $MissingValues = Compare-Object $vlanarray $CompareArray | Where-Object { $_.SideIndicator -eq "=>" } | Select-Object -ExpandProperty InputObject | Sort-Object -ErrorAction stop
+        $nextprefix = $MissingValues | Select-Object -first $numberofclustres 
+    
+    
+    }
+    catch{
+        throw "Could not find next prefix from array - $($_.Exception.Message)"
+    
+    }
+    
+    try{
+        if ($numberofvms -gt 1) {
+            $HighestIP = 11 + ($numberofvms + 1)
+            $IPlist = @(11..$HighestIP)
+        }
+        else {
+            $IPlist = 11
+        }
+    
+    
+    }
+    catch{
+        throw "Could not generate list of usable ip's - $($_.Exception.Message)"
+    
+    }
+    
+    $list = @()
+    $list = 1..($numberofvms) | Select-Object @{n = "ip"; e = { $IPlist[$_]}}, @{n = "nodeid"; e = { $nodeid[$_]}}
+    
+    $usableips = @()
+    $usableips = foreach ($item in $list) {
+    
+        [PSCustomObject]@{
+            nodeid = $item.nodeid
+            ip  = "10.10.$($nextprefix).$($item.ip)/24"
+            subnet = "10.10.$($nextprefix).0/24"
+            hostname = "webnode-$($item.nodeid)-$($stage)-$($company)"
+        }
+        
+     }
+    $json = $usableips | ConvertTo-Json
+    write-output $json
+  args:
+    executable: /usr/bin/pwsh
+  changed_when: false
+  register: nodeinfo
+
+- set_fact: 
+    nodefacts: "{{ nodeinfo.stdout | from_json }}"
+
+- set_stats: 
+    data: 
+      nodefacts: "{{ nodeinfo.stdout | from_json }}"

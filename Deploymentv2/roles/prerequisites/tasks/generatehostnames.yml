@@ -1,0 +1,33 @@
+#loop over each vm number and create specific hostnames
+- name: Generate hostname for controlplane
+  set_fact:
+     controlplanehostname: |
+       controlplane-{{ item.nodeid }}-{{ stage }}-{{ company }}
+  with_items: 
+    - "{{ controlplanefacts }}"
+ 
+- name: Generate hostname for nodes
+  set_fact:
+     nodehostname: |
+       {% for vm in nodefacts %}
+       webnode-{{ vm.nodeid }}-{{ stage }}-{{ company }}
+       {% endfor %}
+
+- name: Set controlplane fact
+  set_fact:  
+    controlplane_hostname: "{{ controlplanehostname.split('\n') | select() | list }}"
+
+- name: Set controlplane stats 
+  set_stats: 
+    data:
+      controlplane_hostname: "{{ controlplanehostname.split('\n') | select() | list }}"
+
+- name: Set facts stats
+  set_fact:  
+      node_hostname: "{{ nodehostname.split('\n') | select() | list }}"
+
+- name: Set node stats
+  set_stats: 
+    data: 
+      node_hostname: "{{ nodehostname.split('\n') | select() | list }}"
+

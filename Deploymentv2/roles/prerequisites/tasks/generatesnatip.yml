@@ -1,0 +1,54 @@
+---
+- name: Generate SNAT IP 
+  raw: |
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $false)]
+        [int]$numberofclustres = '{{ amountofclusters }}'
+        
+    )
+        
+    try {
+    
+        $site = "http://ipam.adshosting.lan/api/ipam/prefixes/63/available-ips/"
+        $header = @{"Authorization" = "Token 0123456789abcdef0123456789abcdef01234567"}
+    
+        $body = @{
+            Method = "GET"
+            Headers = $header
+            URI = $site
+            ContentType = "application/json"
+            AllowUnencryptedAuthentication = $true
+        
+        }
+    
+        $ipamsource = Invoke-RestMethod @body -ErrorAction stop 
+        $add = ($ipamsource | select address | select -first 1)
+    
+    }
+    catch{
+    
+    }
+    
+        $usableips = [PSCustomObject]@{
+            ip  = "$($add.address)"            
+        }
+        
+    $json = $usableips | ConvertTo-Json
+    write-output $json
+  args:
+    executable: /usr/bin/pwsh
+  changed_when: false
+  register: snatinfo
+
+- set_fact: 
+    snatfacts: "{{ snatinfo.stdout | from_json }}"
+
+- set_fact:     
+    publicip: "{{ snatfacts.ip | regex_replace('10', '185')  }}"
+
+- set_stats: 
+    data: 
+      publicip: "{{ publicip.split('/')[0] }}"
+      snatfacts: "{{ snatinfo.stdout | from_json }}"
+
