@@ -7,4 +7,3 @@
       gateway: "{{ controlplanefacts.ip | ipaddr('1') | ipaddr('address') }}"
       dns_servers: "{{ dns_nameservers }}"
       start_connected: true
- # when: network_type == 'static'
