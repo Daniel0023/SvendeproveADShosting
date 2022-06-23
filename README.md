@@ -6,6 +6,7 @@ Every playbook will be excecuted from Ansible Tower where workflows resides.
 For code structure there has been used Ansible Galaxy and Ansible Roles which helps keeping the code dynamic and easy to change.
 Down below is a view of how the code is strutured.
 
+```
 Deploymentv2/
 ├── clusterremoval
 │   ├── removal-netbox.yml
@@ -165,3 +166,4 @@ Deploymentv2/
 │           └── main.yml
 └── templates
     └── lbconfig.j2
+```
