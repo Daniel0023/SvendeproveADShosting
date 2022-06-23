@@ -1,17 +1,9 @@
 - hosts: localhost
   gather_facts: false
-  #vars_files: "defaults/main.yml"
-  vars: 
-    cluser: "cluster01"
-    company: "Komplett"
-    stage: "Test"
-    replicas: 6
-    amountofclusters: 1
-    vm_datacenter: "ADShosting Datacenter"
     
-  
-
   tasks: 
+  
+    - include_vars: defaults/enabledtasks.yml
 
     - name: Include role for generating Control plane
       include_role: 
@@ -27,7 +19,7 @@
 
   tasks:
 
-    - include_vars: enabledtasks.yml
+    - include_vars: defaults/enabledtasks.yml
 
     - name: Include {{ node_tasks | length }} role(s) for node
       include_role:
