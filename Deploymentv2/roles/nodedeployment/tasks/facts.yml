@@ -8,4 +8,3 @@
       dns_servers: "{{ dns_nameservers }}"
       start_connected: true
   with_items: "{{ nodefacts }}"
- # when: network_type == 'static'
